@@ -7,8 +7,6 @@ import net.named_data.jndn.encrypt.ConsumerDb;
 import net.named_data.jndn.encrypt.Sqlite3ConsumerDb;
 import net.named_data.jndn.security.KeyChain;
 
-
-
 /**
  * Description:
  * <p>
@@ -16,11 +14,12 @@ import net.named_data.jndn.security.KeyChain;
  */
 
 public abstract class NACConsumers {
-  public static Consumer newConsumer(Face f, KeyChain kc, Name group, Name consumer, String dbFilePath) {
-    try {
-      return new Consumer(f, kc, group, consumer, new Sqlite3ConsumerDb(dbFilePath));
-    } catch (ConsumerDb.Error error) {
-      throw new RuntimeException(error);
-    }
-  }
+	public static Consumer newConsumer(
+		Face f, KeyChain kc, Name group, Name consumer, String dbFilePath) {
+		try {
+			return new Consumer(f, kc, group, consumer, new Sqlite3ConsumerDb(dbFilePath));
+		} catch (ConsumerDb.Error error) {
+			throw new RuntimeException(error);
+		}
+	}
 }

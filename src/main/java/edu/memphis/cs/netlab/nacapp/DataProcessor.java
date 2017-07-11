@@ -8,7 +8,4 @@ import net.named_data.jndn.Data;
  * Author: lei
  */
 
-public interface DataProcessor {
-  Data process(Data d) throws Exception;
-}
-
+public interface DataProcessor { Data process(Data d) throws Exception; }

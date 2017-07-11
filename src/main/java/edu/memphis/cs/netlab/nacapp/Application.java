@@ -19,7 +19,6 @@ public class Application {
 		TemperatureReader reader = new TemperatureReader(group);
 		reader.init(new Name(Global.APP_PREFIX));
 
-
 		TemperatureReader.OnDataCallback onData = new TemperatureReader.OnDataCallback() {
 			@Override
 			public void onData(String desc, int temperature) {
@@ -45,9 +44,8 @@ public class Application {
 		Runnable onRegisterIdentity = new Runnable() {
 			@Override
 			public void run() {
-				reader.requestGrantPermission("bedroom",
-					onRequestPermissionSuccess,
-					onRequestPermissionFailed);
+				reader.requestGrantPermission(
+					"bedroom", onRequestPermissionSuccess, onRequestPermissionFailed);
 			}
 		};
 

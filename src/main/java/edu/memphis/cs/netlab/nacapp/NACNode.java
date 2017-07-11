@@ -1,6 +1,5 @@
 package edu.memphis.cs.netlab.nacapp;
 
-
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Interest;
@@ -30,7 +29,6 @@ import java.util.logging.Logger;
 
 import static edu.memphis.cs.netlab.nacapp.Global.*;
 
-
 /**
  * Description:
  * <p>
@@ -42,31 +40,25 @@ public class NACNode {
 	//  private static final Logger LOGGER = Logger.getLogger(TAG);
 	private static final Logger LOGGER = Global.LOGGER;
 
-
 	////////////////////////////////////////////////////////
 	// NDN Primitives Wrapper
 	////////////////////////////////////////////////////////
 
 	// retry on Nack
-	public void expressInterest(Name name,
-								final OnData onData) throws IOException {
+	public void expressInterest(Name name, final OnData onData) throws IOException {
 		expressInterest(name, onData, null);
 	}
 
-	public void expressInterest(Name name,
-								final OnData onData,
-								final OnNetworkNack
-									onNack) throws IOException {
+	public void expressInterest(Name name, final OnData onData, final OnNetworkNack onNack)
+		throws IOException {
 		expressInterest(name, onData, onNack, DEFAULT_INTEREST_TIMEOUT_RETRY);
 	}
 
-	public void expressInterest(final Name interestName,
-								final OnData onData,
-								final OnNetworkNack onNack,
-								int maxRetry) throws IOException {
+	public void expressInterest(final Name interestName, final OnData onData,
+		final OnNetworkNack onNack, int maxRetry) throws IOException {
 		final Interest interest = new Interest(interestName, DEFAULT_INTEREST_TIMEOUT_MS);
 		try {
-//      m_keychain.sign(interest);
+			//      m_keychain.sign(interest);
 			expressInterest(interest, onData, onNack, maxRetry);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -74,10 +66,8 @@ public class NACNode {
 	}
 
 	// repeat on timeout
-	public void expressInterest(final Interest interest,
-								final OnData onData,
-								final OnNetworkNack onNack,
-								int maxRetry) throws IOException {
+	public void expressInterest(final Interest interest, final OnData onData,
+		final OnNetworkNack onNack, int maxRetry) throws IOException {
 		final int[] retry = {maxRetry};
 		final OnTimeout[] onTimeouts = {null};
 		final OnNetworkNack[] onNacks = {null};
@@ -114,16 +104,13 @@ public class NACNode {
 		m_face.expressInterest(interest, onData, onTimeouts[0], onNacks[0]);
 	}
 
-
 	// issue interest using default timeout
 	// sign interest using default identity
-	public void expressInterest(Name name,
-								OnData onData,
-								OnTimeout onTimeout,
-								OnNetworkNack onNac) throws IOException {
+	public void expressInterest(Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNac)
+		throws IOException {
 		Interest interest = new Interest(name, DEFAULT_INTEREST_TIMEOUT_MS);
 		try {
-//      m_keychain.sign(interest);
+			//      m_keychain.sign(interest);
 			m_face.expressInterest(interest, onData, onTimeout, onNac);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -134,12 +121,12 @@ public class NACNode {
 		putData(d, new LinkedList<>());
 	}
 
-
 	/**
 	 * publish data on NDN
 	 *
 	 * @param d              the data object
-	 * @param dataProcessors a list of processors to b applied before the data is sent out.
+	 * @param dataProcessors a list of processors to b applied before the data is
+	 * sent out.
 	 */
 	public void putData(Data d, List<DataProcessor> dataProcessors) {
 		try {
@@ -154,20 +141,15 @@ public class NACNode {
 				m_keychain.sign(d);
 			}
 			m_face.putData(d);
-			LOGGER.info(String.format(Locale.ENGLISH,
-				"[OUT] (%d) %s",
-				d.getContent().size(),
-				d.getName().toUri()));
+			LOGGER.info(String.format(
+				Locale.ENGLISH, "[OUT] (%d) %s", d.getContent().size(), d.getName().toUri()));
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "error putData", e);
 		}
 	}
 
-	public void registerPrefix(final Name prefix,
-							   final OnInterestCallback onInterest,
-							   final OnRegisterFailed onFail,
-							   final OnRegisterSuccess onSuccess,
-							   int maxRetry) {
+	public void registerPrefix(final Name prefix, final OnInterestCallback onInterest,
+		final OnRegisterFailed onFail, final OnRegisterSuccess onSuccess, int maxRetry) {
 		final int[] retry = {maxRetry};
 
 		final OnRegisterFailed[] onRetry = {null};
@@ -201,22 +183,18 @@ public class NACNode {
 		return m_face;
 	}
 
-
 	////////////////////////////////////////////////////////
 	// Access Control API
 	////////////////////////////////////////////////////////
 
-	public interface OnRegisterIdentitySuccess {
-		void onNewCertificate(IdentityCertificate cert);
-	}
+	public interface OnRegisterIdentitySuccess { void onNewCertificate(IdentityCertificate cert); }
 
 	// should
 	//    1. publish self public key
 	//    2. send public key to manager
 	//    3. receive signed pub key and call onSuccess
-	public void registerIdentity(final Name certName,
-								 final Data cert,
-								 final OnRegisterIdentitySuccess onSuccess) {
+	public void registerIdentity(
+		final Name certName, final Data cert, final OnRegisterIdentitySuccess onSuccess) {
 		SCHEDULED_EXECUTOR_SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -230,11 +208,8 @@ public class NACNode {
 		});
 	}
 
-
-	public void requestGrantPermission(final Name consumerCert,
-									   final String dataType,
-									   final Runnable onSuccess,
-									   final Runnable onFail) {
+	public void requestGrantPermission(final Name consumerCert, final String dataType,
+		final Runnable onSuccess, final Runnable onFail) {
 		SCHEDULED_EXECUTOR_SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -242,7 +217,6 @@ public class NACNode {
 			}
 		});
 	}
-
 
 	////////////////////////////////////////////////////////
 	// INIT KeyChain and Face
@@ -263,8 +237,7 @@ public class NACNode {
 			throw new RuntimeException(e);
 		}
 		try {
-			m_face.setCommandSigningInfo(
-				m_keychain, m_keychain.getDefaultCertificateName());
+			m_face.setCommandSigningInfo(m_keychain, m_keychain.getDefaultCertificateName());
 		} catch (SecurityException ignored) {
 			LOGGER.log(Level.SEVERE, "Cannot set command signing info : ", ignored);
 			throw new RuntimeException(ignored);
@@ -292,47 +265,51 @@ public class NACNode {
 		}
 	}
 
-	private void fetchSignedCertitificate(final String certName, final OnRegisterIdentitySuccess onSuccess) {
+	private void fetchSignedCertitificate(
+		final String certName, final OnRegisterIdentitySuccess onSuccess) {
 		try {
 			final String api = Global.LOCAL_HOME + "/IDENTITY/for" + certName;
 			final Name finalCertName = new Name(certName);
-			expressInterest(new Name(api), new OnData() {
-				@Override
-				public void onData(Interest interest, Data data) {
-					try {
-						data.setName(finalCertName);
-						IdentityCertificate cert = new IdentityCertificate(data);
-						onSuccess.onNewCertificate(cert);
-					} catch (DerDecodingException e) {
-						LOGGER.log(Level.SEVERE, "fetchSignedCertitificate->callback", e);
+			expressInterest(new Name(api),
+				new OnData() {
+					@Override
+					public void onData(Interest interest, Data data) {
+						try {
+							data.setName(finalCertName);
+							IdentityCertificate cert = new IdentityCertificate(data);
+							onSuccess.onNewCertificate(cert);
+						} catch (DerDecodingException e) {
+							LOGGER.log(Level.SEVERE, "fetchSignedCertitificate->callback", e);
+						}
 					}
-				}
-			}, new OnNetworkNack() {
-				@Override
-				public void onNetworkNack(Interest interest, NetworkNack networkNack) {
-					// restart
-					try {
-						TimeUnit.SECONDS.sleep(2);
-						// onFail, restart from add Identity
-						requestAddIdentity(finalCertName, onSuccess);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+				},
+				new OnNetworkNack() {
+					@Override
+					public void onNetworkNack(Interest interest, NetworkNack networkNack) {
+						// restart
+						try {
+							TimeUnit.SECONDS.sleep(2);
+							// onFail, restart from add Identity
+							requestAddIdentity(finalCertName, onSuccess);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 					}
-				}
-			});
+				});
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "fetchSignedCertitificate", e);
 		}
 	}
 
-
 	private void publishCert(final Name certName, final Data cert, final Runnable onSuc) {
 		final OnInterestCallback onInterest = new OnInterestCallback() {
 			@Override
-			public void onInterest(Name prefix, Interest interest, Face face, long interestFilterId, InterestFilter filter) {
+			public void onInterest(Name prefix, Interest interest, Face face, long interestFilterId,
+				InterestFilter filter) {
 				try {
 					Data result = new Data(cert);
-					if (result.getMetaInfo() == null || result.getMetaInfo().getFreshnessPeriod() <= 0) {
+					if (result.getMetaInfo() == null
+						|| result.getMetaInfo().getFreshnessPeriod() <= 0) {
 						if (result.getMetaInfo() == null) {
 							result.setMetaInfo(new MetaInfo());
 						}
@@ -353,10 +330,8 @@ public class NACNode {
 		registerPrefix(certName, onInterest, null, onRegSuc, DEFAULT_INTEREST_TIMEOUT_RETRY);
 	}
 
-	private void doRequestPermission(Name consumerCert,
-									 String dataType,
-									 final Runnable onSuccess,
-									 final Runnable onFail) {
+	private void doRequestPermission(
+		Name consumerCert, String dataType, final Runnable onSuccess, final Runnable onFail) {
 		Name api = new Name(Global.LOCAL_HOME + "/MANAGEMENT/access/grant");
 		String certName = consumerCert.toUri();
 		api.append(certName);
@@ -413,7 +388,6 @@ public class NACNode {
 	}
 
 	private boolean m_prcessing = false;
-
 
 	protected Face m_face;
 	protected KeyChain m_keychain;

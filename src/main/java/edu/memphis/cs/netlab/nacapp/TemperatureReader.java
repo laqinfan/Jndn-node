@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 import static edu.memphis.cs.netlab.nacapp.Global.*;
 
-
 /**
  * Description:
  * <p>
@@ -30,13 +29,11 @@ public class TemperatureReader extends NACNode {
 		m_group = group;
 	}
 
-	public interface OnDataCallback {
-		void onData(String desc, int temperature);
-	}
-
+	public interface OnDataCallback { void onData(String desc, int temperature); }
 
 	public void read(final Name location, final OnDataCallback callback) {
-		Name servicePrefix = new Name(LOCAL_HOME + SAMPLE + LOCATION + location + "/temperature/" + Utils.nowIsoString());
+		Name servicePrefix = new Name(
+			LOCAL_HOME + SAMPLE + LOCATION + location + "/temperature/" + Utils.nowIsoString());
 		m_consumer.consume(servicePrefix,
 			new Consumer.OnConsumeComplete() {
 				@Override
@@ -45,7 +42,8 @@ public class TemperatureReader extends NACNode {
 					LOGGER.info("GOT temperature: " + String.valueOf(tempReading));
 					callback.onData("success", tempReading);
 				}
-			}, new EncryptError.OnError() {
+			},
+			new EncryptError.OnError() {
 				@Override
 				public void onError(EncryptError.ErrorCode errorCode, String message) {
 					LOGGER.log(Level.SEVERE,
@@ -67,9 +65,8 @@ public class TemperatureReader extends NACNode {
 			});
 	}
 
-	public void requestGrantPermission(String location,
-									   final Runnable onSuccess,
-									   final Runnable onFail) {
+	public void requestGrantPermission(
+		String location, final Runnable onSuccess, final Runnable onFail) {
 		final String datatype = LOCATION + Utils.nameComponent(location);
 		super.requestGrantPermission(
 			m_consumerWrapper.getCertificate().getName(), datatype, onSuccess, onFail);
@@ -79,7 +76,7 @@ public class TemperatureReader extends NACNode {
 		OnRegisterIdentitySuccess callback = new OnRegisterIdentitySuccess() {
 			@Override
 			public void onNewCertificate(IdentityCertificate cert) {
-//				m_consumerWrapper.setCertificate(cert);
+				//				m_consumerWrapper.setCertificate(cert);
 				onSuccess.run();
 			}
 		};
@@ -98,11 +95,10 @@ public class TemperatureReader extends NACNode {
 	private void initConsumer(Name appPrefix) {
 		Name consumerName = new Name(appPrefix);
 		consumerName.append("Consumer");
-		m_consumerWrapper = ConsumerWrapper.make(
-			consumerName, m_group, m_keychain, m_face, CONSUMER_DB_PATH);
+		m_consumerWrapper =
+			ConsumerWrapper.make(consumerName, m_group, m_keychain, m_face, CONSUMER_DB_PATH);
 		m_consumer = m_consumerWrapper.getConsumer();
 	}
-
 
 	public Consumer getConsumer() {
 		return m_consumer;
