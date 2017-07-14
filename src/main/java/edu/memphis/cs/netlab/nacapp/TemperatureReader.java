@@ -22,6 +22,7 @@ import static edu.memphis.cs.netlab.nacapp.Global.*;
 public class TemperatureReader extends NACNode {
 	private final static String TAG = NACNode.class.getName();
 	//  private static final Logger LOGGER = Logger.getLogger(TAG);
+
 	private static final Logger LOGGER = Global.LOGGER;
 
 	public TemperatureReader(Name group) {

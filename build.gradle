@@ -24,6 +24,10 @@ dependencies {
 //        builtBy "compileMavenProject"
 //    }
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.19.3'
+
+
+    testCompile 'junit:junit:4.12'
+
 }
 
 task compileMavenProject(type: Exec) {

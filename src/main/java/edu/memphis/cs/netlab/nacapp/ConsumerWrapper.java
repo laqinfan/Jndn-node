@@ -50,6 +50,7 @@ public class ConsumerWrapper {
 
 		// configure consumer
 		try {
+			// TODO: Question for NAC developer
 			// private key is saved by consumer in a database (say SQLite)
 			// where is public key saved? the developer need to keep it ???
 			wrapper.m_consumer.addDecryptionKey(wrapper.m_keyName, keyPair.privateKey.getKeyBits());
@@ -110,7 +111,7 @@ public class ConsumerWrapper {
 		return new ConsumerWrapper(name, consumer, keyName, cert, keyPair);
 	}
 
-	private static class KeyPair {
+	public static class KeyPair {
 		public EncryptKey publicKey;
 		public DecryptKey privateKey;
 	}
@@ -156,8 +157,9 @@ public class ConsumerWrapper {
 		try {
 			PublicKey pk = new PublicKey(ekey);
 			cert.setPublicKeyInfo(pk);
+			cert.setNotBefore(0);
+			cert.setNotAfter(0);
 			cert.encode();
-			keychain.sign(cert);
 		} catch (SecurityException e) {
 			throw new RuntimeException(e);
 		} catch (DerDecodingException | DerEncodingException e) {
@@ -193,6 +195,16 @@ public class ConsumerWrapper {
 			m_consumer.addDecryptionKey(cert.getPublicKeyName(), m_keypair.privateKey.getKeyBits());
 		} catch (ConsumerDb.Error error) {
 			logger.log(Level.SEVERE, "cannot add decrypt key for cert:" + error.getMessage());
+		}
+	}
+
+	public static class FriendAccess{
+		public KeyPair generateKeyPair(){
+			return ConsumerWrapper.generateKeyPair();
+		}
+
+		public KeyPair getKeyPair(ConsumerWrapper c){
+			return c.m_keypair;
 		}
 	}
 

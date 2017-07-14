@@ -45,7 +45,9 @@ public class Application {
 			@Override
 			public void run() {
 				reader.requestGrantPermission(
-					"bedroom", onRequestPermissionSuccess, onRequestPermissionFailed);
+					"bedroom",
+					onRequestPermissionSuccess,
+					onRequestPermissionFailed);
 			}
 		};
 

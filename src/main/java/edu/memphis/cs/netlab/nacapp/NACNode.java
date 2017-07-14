@@ -242,6 +242,9 @@ public class NACNode {
 			LOGGER.log(Level.SEVERE, "Cannot set command signing info : ", ignored);
 			throw new RuntimeException(ignored);
 		}
+		System.out.println("- - - - - - - - - -");
+		System.out.println(String.format("[KeyChain] Default identity: %s", appPrefix.toUri()));
+		System.out.println("- - - - - - - - - -");
 	}
 
 	////////////////////////////////////////////////////////
