@@ -191,7 +191,6 @@ public class TestConsumerWrapper {
 			} else {
 				throw new RuntimeException("Unhandled interest: " + interest.getName());
 			}
-
 			return 0;
 		}
 	}
@@ -232,7 +231,6 @@ public class TestConsumerWrapper {
 	}
 
 	static class Fixture extends FixtureStatics implements GroupManager.Friend, Consumer.Friend {
-
 		Face face;
 		KeyChain keychain;
 		GroupManager.FriendAccess managerAccess;
@@ -246,9 +244,7 @@ public class TestConsumerWrapper {
 
 		public Fixture() {
 			super();
-
 			face = new LocalTestFace(this);
-
 			try {
 				keychain = KeyChainHelper.makeKeyChain(identity, face);
 			} catch (SecurityException e) {

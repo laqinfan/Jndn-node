@@ -1,18 +1,6 @@
 package edu.memphis.cs.netlab.nacapp;
 
-import net.named_data.jndn.Data;
-import net.named_data.jndn.Face;
-import net.named_data.jndn.Interest;
-import net.named_data.jndn.InterestFilter;
-import net.named_data.jndn.MetaInfo;
-import net.named_data.jndn.Name;
-import net.named_data.jndn.NetworkNack;
-import net.named_data.jndn.OnData;
-import net.named_data.jndn.OnInterestCallback;
-import net.named_data.jndn.OnNetworkNack;
-import net.named_data.jndn.OnRegisterFailed;
-import net.named_data.jndn.OnRegisterSuccess;
-import net.named_data.jndn.OnTimeout;
+import net.named_data.jndn.*;
 import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encoding.der.DerDecodingException;
 import net.named_data.jndn.security.KeyChain;
@@ -54,20 +42,17 @@ public class NACNode {
 		expressInterest(name, onData, onNack, DEFAULT_INTEREST_TIMEOUT_RETRY);
 	}
 
-	public void expressInterest(final Name interestName, final OnData onData,
-		final OnNetworkNack onNack, int maxRetry) throws IOException {
-		final Interest interest = new Interest(interestName, DEFAULT_INTEREST_TIMEOUT_MS);
-		try {
-			//      m_keychain.sign(interest);
-			expressInterest(interest, onData, onNack, maxRetry);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	public void expressInterest(final Name interestName,
+								final OnData onData,
+								final OnNetworkNack onNack,
+								int maxRetry) throws IOException {
+		final Interest interest = new Interest(interestName, Global.DEFAULT_INTEREST_TIMEOUT_MS);
+		expressInterest(interest, onData, onNack, maxRetry);
 	}
 
 	// repeat on timeout
 	public void expressInterest(final Interest interest, final OnData onData,
-		final OnNetworkNack onNack, int maxRetry) throws IOException {
+								final OnNetworkNack onNack, int maxRetry) throws IOException {
 		final int[] retry = {maxRetry};
 		final OnTimeout[] onTimeouts = {null};
 		final OnNetworkNack[] onNacks = {null};
@@ -126,7 +111,7 @@ public class NACNode {
 	 *
 	 * @param d              the data object
 	 * @param dataProcessors a list of processors to b applied before the data is
-	 * sent out.
+	 *                       sent out.
 	 */
 	public void putData(Data d, List<DataProcessor> dataProcessors) {
 		try {
@@ -134,22 +119,45 @@ public class NACNode {
 			if (null == d.getMetaInfo()) {
 				d.setMetaInfo(new MetaInfo());
 			}
-			if (d.getMetaInfo().getFreshnessPeriod() <= 0) {
+//			if (d.getMetaInfo().getFreshnessPeriod() <= 0) {
 				d.getMetaInfo().setFreshnessPeriod(DEFAULT_FRESH_PERIOD_MS);
-			}
+//			}
 			if (null == d.getSignature()) {
 				m_keychain.sign(d);
 			}
 			m_face.putData(d);
-			LOGGER.info(String.format(
-				Locale.ENGLISH, "[OUT] (%d) %s", d.getContent().size(), d.getName().toUri()));
+			final String tag = d.getMetaInfo().getType() == ContentType.NACK ? "NACK" : "OUT";
+			LOGGER.info(String.format(Locale.ENGLISH,
+				"[%s] (%d) %s",
+				tag,
+				d.getContent().size(),
+				d.getName().toUri()));
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "error putData", e);
 		}
 	}
 
+	public void nack(Name n) {
+		final Data nack = new Data();
+		nack.setName(n);
+		nack.setMetaInfo(new MetaInfo());
+		nack.getMetaInfo().setFreshnessPeriod(1000);
+		nack.getMetaInfo().setType(ContentType.NACK);
+		putData(nack);
+	}
+
+	public void registerPrefix(final String prefix, final OnInterestCallback onInterest, final OnRegisterSuccess onSuccess) {
+		OnRegisterFailed onRegisterFailed = new OnRegisterFailed() {
+			@Override
+			public void onRegisterFailed(Name name) {
+				System.err.println("Register failed: " + name.toUri());
+			}
+		};
+		registerPrefix(new Name(prefix), onInterest, onRegisterFailed, onSuccess, DEFAULT_INTEREST_TIMEOUT_RETRY);
+	}
+
 	public void registerPrefix(final Name prefix, final OnInterestCallback onInterest,
-		final OnRegisterFailed onFail, final OnRegisterSuccess onSuccess, int maxRetry) {
+							   final OnRegisterFailed onFail, final OnRegisterSuccess onSuccess, int maxRetry) {
 		final int[] retry = {maxRetry};
 
 		final OnRegisterFailed[] onRetry = {null};
@@ -187,7 +195,9 @@ public class NACNode {
 	// Access Control API
 	////////////////////////////////////////////////////////
 
-	public interface OnRegisterIdentitySuccess { void onNewCertificate(IdentityCertificate cert); }
+	public interface OnRegisterIdentitySuccess {
+		void onNewCertificate(IdentityCertificate cert);
+	}
 
 	// should
 	//    1. publish self public key
@@ -209,7 +219,7 @@ public class NACNode {
 	}
 
 	public void requestGrantPermission(final Name consumerCert, final String dataType,
-		final Runnable onSuccess, final Runnable onFail) {
+									   final Runnable onSuccess, final Runnable onFail) {
 		SCHEDULED_EXECUTOR_SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -227,7 +237,7 @@ public class NACNode {
 	 *
 	 * @param appPrefix Application prefix
 	 */
-	protected void init(Name appPrefix) {
+	public void init(Name appPrefix) {
 		appPrefix = new Name(appPrefix);
 		appPrefix.append(Global.TMP_IDENTITY);
 		m_face = new Face("localhost");
@@ -308,7 +318,7 @@ public class NACNode {
 		final OnInterestCallback onInterest = new OnInterestCallback() {
 			@Override
 			public void onInterest(Name prefix, Interest interest, Face face, long interestFilterId,
-				InterestFilter filter) {
+								   InterestFilter filter) {
 				try {
 					Data result = new Data(cert);
 					if (result.getMetaInfo() == null
@@ -367,7 +377,7 @@ public class NACNode {
 
 	// start a separate thread to process NDN Face events
 	public void startFaceProcessing() {
-		if (m_prcessing) {
+		if (m_processing) {
 			return;
 		}
 		SCHEDULED_EXECUTOR_SERVICE.submit(new Runnable() {
@@ -383,14 +393,14 @@ public class NACNode {
 				} catch (IOException | EncodingException | InterruptedException e) {
 					LOGGER.log(Level.SEVERE, e.getMessage());
 				} finally {
-					m_prcessing = false;
+					m_processing = false;
 				}
 			}
 		});
-		m_prcessing = true;
+		m_processing = true;
 	}
 
-	private boolean m_prcessing = false;
+	private boolean m_processing = false;
 
 	protected Face m_face;
 	protected KeyChain m_keychain;

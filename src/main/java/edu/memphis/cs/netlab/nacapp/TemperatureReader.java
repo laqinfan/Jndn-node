@@ -88,7 +88,7 @@ public class TemperatureReader extends NACNode {
 	}
 
 	@Override
-	protected void init(Name appPrefix) {
+	public void init(Name appPrefix) {
 		super.init(appPrefix);
 		initConsumer(appPrefix);
 	}
