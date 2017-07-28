@@ -5,3 +5,5 @@ target
 ./**/*.class
 test*.db
 classes
+bin
+out

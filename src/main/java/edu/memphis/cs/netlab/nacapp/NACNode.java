@@ -90,12 +90,10 @@ public class NACNode {
 	}
 
 	// issue interest using default timeout
-	// sign interest using default identity
 	public void expressInterest(Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNac)
 		throws IOException {
 		Interest interest = new Interest(name, DEFAULT_INTEREST_TIMEOUT_MS);
 		try {
-			//      m_keychain.sign(interest);
 			m_face.expressInterest(interest, onData, onTimeout, onNac);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -126,7 +124,7 @@ public class NACNode {
 				m_keychain.sign(d);
 			}
 			m_face.putData(d);
-			final String tag = d.getMetaInfo().getType() == ContentType.NACK ? "NACK" : "OUT";
+			final String tag = d.getMetaInfo().getType() == ContentType.NACK ? "NACK" : "OUT:DATA";
 			LOGGER.info(String.format(Locale.ENGLISH,
 				"[%s] (%d) %s",
 				tag,
@@ -187,6 +185,51 @@ public class NACNode {
 		}
 	}
 
+	public void registerPrefixes(InterestHandler[] handlers, Runnable onSuccess){
+		final int[] cnt = {0};
+		OnRegisterSuccess[] onRegSuc = {null};
+		Runnable doRegister = new Runnable() {
+			@Override
+			public void run() {
+				final String thisPrefix =  m_prefix.toUri() + handlers[cnt[0]].path();
+				final InterestHandler handler = handlers[cnt[0]];
+				registerPrefix(thisPrefix, new OnInterestCallback() {
+					@Override
+					public void onInterest(Name name,
+										   Interest interest,
+										   Face face,
+										   long l,
+										   InterestFilter interestFilter) {
+						System.out.println("IN: " + interest.toUri());
+						handler.onInterest(name, interest, face, l, interestFilter);
+					}
+				}, new OnRegisterSuccess() {
+					@Override
+					public void onRegisterSuccess(Name name, long l) {
+						try{
+							handler.onRegisterSuccess(name, l);
+						} catch (Throwable e){
+							Global.LOGGER.warning(
+								"Error calling onRegisterSuccess for " + name.toUri() + ": " + e.getMessage());
+						}
+						onRegSuc[0].onRegisterSuccess(name, l);
+					}
+				});
+			}
+		};
+		onRegSuc[0] = new OnRegisterSuccess() {
+			@Override
+			public void onRegisterSuccess(Name name, long l) {
+				if (++cnt[0] >= handlers.length) {
+					onSuccess.run();
+					return;
+				}
+				doRegister.run();
+			}
+		};
+		doRegister.run();
+	}
+
 	public Face getFace() {
 		return m_face;
 	}
@@ -233,16 +276,18 @@ public class NACNode {
 	////////////////////////////////////////////////////////
 
 	/**
-	 * Create application keychain, init default identity
+	 * Create application keychain, init default identity with
+	 * name "${appPrefix}/tmp-identity"
 	 *
 	 * @param appPrefix Application prefix
 	 */
 	public void init(Name appPrefix) {
-		appPrefix = new Name(appPrefix);
-		appPrefix.append(Global.TMP_IDENTITY);
+		m_prefix = new Name(appPrefix);
+		Name identity = new Name(appPrefix);
+		identity.append(Global.TMP_IDENTITY);
 		m_face = new Face("localhost");
 		try {
-			m_keychain = KeyChainHelper.makeKeyChain(appPrefix, m_face);
+			m_keychain = KeyChainHelper.makeKeyChain(identity, m_face);
 		} catch (SecurityException e) {
 			throw new RuntimeException(e);
 		}
@@ -253,7 +298,7 @@ public class NACNode {
 			throw new RuntimeException(ignored);
 		}
 		System.out.println("- - - - - - - - - -");
-		System.out.println(String.format("[KeyChain] Default identity: %s", appPrefix.toUri()));
+		System.out.println(String.format("[KeyChain] Default identity: %s", identity.toUri()));
 		System.out.println("- - - - - - - - - -");
 	}
 
@@ -404,4 +449,5 @@ public class NACNode {
 
 	protected Face m_face;
 	protected KeyChain m_keychain;
+	private Name m_prefix;
 }

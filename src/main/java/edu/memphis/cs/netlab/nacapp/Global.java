@@ -18,7 +18,7 @@ public abstract class Global {
 
 	public static final String LOCAL_HOME = "/local-home/NAC";
 	public static final String DEVICE_PREFIX = "/local-home/device/android-app";
-	public static final String APP_PREFIX = DEVICE_PREFIX + "/home-client";
+//	public static final String APP_PREFIX = DEVICE_PREFIX + "/home-client";
 
 	public static final String TMP_IDENTITY = "tmp-identity";
 
@@ -31,7 +31,7 @@ public abstract class Global {
 	// ----------------------------------------------------------------------
 	// Security Setting
 
-	public static enum KeyType { RSA, ECDSA }
+	public enum KeyType { RSA, ECDSA }
 
 	public static final int DEFAULT_KEY_SIZE_2048 = 2048;
 	public static final KeyType DEFAULT_KEY_TYPE = KeyType.ECDSA;

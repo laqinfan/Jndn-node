@@ -92,12 +92,12 @@ public class TestConsumerWrapper {
 
 		@Override
 		public void onEncryptedKeys(List list) {
-			for (Object ckeyObj : list){
-				if (null == ckeyObj){
+			for (Object ckeyObj : list) {
+				if (null == ckeyObj) {
 					continue;
 				}
 				Data cKey = (Data) ckeyObj;
-				if (this.cKeys == null){
+				if (this.cKeys == null) {
 					this.cKeys = new LinkedList<>();
 				}
 				this.cKeys.add(cKey);
@@ -106,10 +106,6 @@ public class TestConsumerWrapper {
 
 		private void processContent(Interest interest, OnData onData) {
 			Data d = new Data();
-//				d.setName(name);
-//				d.setContent(new Blob("HELLO"));
-//				d.setMetaInfo(new MetaInfo());
-//				d.getMetaInfo().setFreshnessPeriod(1000);
 			EncryptError.OnError onError = new EncryptError.OnError() {
 				@Override
 				public void onError(EncryptError.ErrorCode errorCode, String s) {
@@ -133,7 +129,7 @@ public class TestConsumerWrapper {
 		private void processEKey(Interest interest, OnData onData) {
 			try {
 				if (eKeys == null || eKeys.size() == 0) {
-					List keys = fixture.groupManager.getGroupKey(fixture.startTimeSlot);
+					List keys = fixture.groupManager.getGroupKey(fixture.startTimeSlot,false);
 					eKeys = new LinkedList<>();
 					for (Object k : keys) {
 						eKeys.add((Data) k);
@@ -346,7 +342,7 @@ public class TestConsumerWrapper {
 
 			DecryptKey decryptKey = consumerWrapperAccess.getKeyPair(consumerWrapper).privateKey;
 
-			System.out.println(String.format("Decryption Key: %s" , consumerWrapper.getCertificate().getName()));
+			System.out.println(String.format("Decryption Key: %s", consumerWrapper.getCertificate().getName()));
 
 			fixture.consumer.addDecryptionKey(consumerWrapper.getCertificate().getName(), decryptKey.getKeyBits());
 
