@@ -5,5 +5,9 @@ target
 ./**/*.class
 test*.db
 classes
-bin
+.project
+.classpath
 out
+bin
+.settings
+*.iml
