@@ -37,33 +37,29 @@ public class NACNode {
 		expressInterest(name, onData, null);
 	}
 
-	public void expressInterest(Name name, final OnData onData, final OnNetworkNack onNack)
-		throws IOException {
+	public void expressInterest(Name name, final OnData onData, final OnNetworkNack onNack) throws IOException {
 		expressInterest(name, onData, onNack, DEFAULT_INTEREST_TIMEOUT_RETRY);
 	}
 
-	public void expressInterest(final Name interestName,
-								final OnData onData,
-								final OnNetworkNack onNack,
-								int maxRetry) throws IOException {
+	public void expressInterest(final Name interestName, final OnData onData, final OnNetworkNack onNack, int maxRetry)
+			throws IOException {
 		final Interest interest = new Interest(interestName, Global.DEFAULT_INTEREST_TIMEOUT_MS);
 		expressInterest(interest, onData, onNack, maxRetry);
 	}
 
 	// repeat on timeout
-	public void expressInterest(final Interest interest, final OnData onData,
-								final OnNetworkNack onNack, int maxRetry) throws IOException {
-		final int[] retry = {maxRetry};
-		final OnTimeout[] onTimeouts = {null};
-		final OnNetworkNack[] onNacks = {null};
+	public void expressInterest(final Interest interest, final OnData onData, final OnNetworkNack onNack, int maxRetry)
+			throws IOException {
+		final int[] retry = { maxRetry };
+		final OnTimeout[] onTimeouts = { null };
+		final OnNetworkNack[] onNacks = { null };
 
 		onTimeouts[0] = new OnTimeout() {
 			@Override
 			public void onTimeout(Interest interest) {
 				if (retry[0]-- > 0) {
 					final int retryIntervalSec = 1;
-					LOGGER.log(Level.INFO,
-						"Retry interest after " + retryIntervalSec + " second(s) " + retry[0]);
+					LOGGER.log(Level.INFO, "Retry interest after " + retryIntervalSec + " second(s) " + retry[0]);
 					try {
 						TimeUnit.SECONDS.sleep(retryIntervalSec);
 						m_face.expressInterest(interest, onData, onTimeouts[0], onNacks[0]);
@@ -90,8 +86,7 @@ public class NACNode {
 	}
 
 	// issue interest using default timeout
-	public void expressInterest(Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNac)
-		throws IOException {
+	public void expressInterest(Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNac) throws IOException {
 		Interest interest = new Interest(name, DEFAULT_INTEREST_TIMEOUT_MS);
 		try {
 			m_face.expressInterest(interest, onData, onTimeout, onNac);
@@ -101,7 +96,7 @@ public class NACNode {
 	}
 
 	public void putData(Data d) {
-		putData(d, new LinkedList<>());
+		putData(d, new LinkedList());
 	}
 
 	/**
@@ -117,19 +112,15 @@ public class NACNode {
 			if (null == d.getMetaInfo()) {
 				d.setMetaInfo(new MetaInfo());
 			}
-//			if (d.getMetaInfo().getFreshnessPeriod() <= 0) {
-				d.getMetaInfo().setFreshnessPeriod(DEFAULT_FRESH_PERIOD_MS);
-//			}
+			//			if (d.getMetaInfo().getFreshnessPeriod() <= 0) {
+			d.getMetaInfo().setFreshnessPeriod(DEFAULT_FRESH_PERIOD_MS);
+			//			}
 			if (null == d.getSignature()) {
 				m_keychain.sign(d);
 			}
 			m_face.putData(d);
 			final String tag = d.getMetaInfo().getType() == ContentType.NACK ? "NACK" : "OUT:DATA";
-			LOGGER.info(String.format(Locale.ENGLISH,
-				"[%s] (%d) %s",
-				tag,
-				d.getContent().size(),
-				d.getName().toUri()));
+			LOGGER.info(String.format(Locale.ENGLISH, "[%s] (%d) %s", tag, d.getContent().size(), d.getName().toUri()));
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "error putData", e);
 		}
@@ -144,7 +135,8 @@ public class NACNode {
 		putData(nack);
 	}
 
-	public void registerPrefix(final String prefix, final OnInterestCallback onInterest, final OnRegisterSuccess onSuccess) {
+	public void registerPrefix(final String prefix, final OnInterestCallback onInterest,
+			final OnRegisterSuccess onSuccess) {
 		OnRegisterFailed onRegisterFailed = new OnRegisterFailed() {
 			@Override
 			public void onRegisterFailed(Name name) {
@@ -154,11 +146,11 @@ public class NACNode {
 		registerPrefix(new Name(prefix), onInterest, onRegisterFailed, onSuccess, DEFAULT_INTEREST_TIMEOUT_RETRY);
 	}
 
-	public void registerPrefix(final Name prefix, final OnInterestCallback onInterest,
-							   final OnRegisterFailed onFail, final OnRegisterSuccess onSuccess, int maxRetry) {
-		final int[] retry = {maxRetry};
+	public void registerPrefix(final Name prefix, final OnInterestCallback onInterest, final OnRegisterFailed onFail,
+			final OnRegisterSuccess onSuccess, int maxRetry) {
+		final int[] retry = { maxRetry };
 
-		final OnRegisterFailed[] onRetry = {null};
+		final OnRegisterFailed[] onRetry = { null };
 		onRetry[0] = new OnRegisterFailed() {
 			@Override
 			public void onRegisterFailed(Name prefix) {
@@ -185,32 +177,27 @@ public class NACNode {
 		}
 	}
 
-	public void registerPrefixes(InterestHandler[] handlers, Runnable onSuccess){
-		final int[] cnt = {0};
-		OnRegisterSuccess[] onRegSuc = {null};
-		Runnable doRegister = new Runnable() {
+	public void registerPrefixes(final InterestHandler[] handlers, final Runnable onSuccess) {
+		final int[] cnt = { 0 };
+		final OnRegisterSuccess[] onRegSuc = { null };
+		final Runnable doRegister = new Runnable() {
 			@Override
 			public void run() {
-				final String thisPrefix =  m_prefix.toUri() + handlers[cnt[0]].path();
+				final String thisPrefix = m_prefix.toUri() + handlers[cnt[0]].path();
 				final InterestHandler handler = handlers[cnt[0]];
 				registerPrefix(thisPrefix, new OnInterestCallback() {
 					@Override
-					public void onInterest(Name name,
-										   Interest interest,
-										   Face face,
-										   long l,
-										   InterestFilter interestFilter) {
+					public void onInterest(Name name, Interest interest, Face face, long l, InterestFilter interestFilter) {
 						System.out.println("IN: " + interest.toUri());
 						handler.onInterest(name, interest, face, l, interestFilter);
 					}
 				}, new OnRegisterSuccess() {
 					@Override
 					public void onRegisterSuccess(Name name, long l) {
-						try{
+						try {
 							handler.onRegisterSuccess(name, l);
-						} catch (Throwable e){
-							Global.LOGGER.warning(
-								"Error calling onRegisterSuccess for " + name.toUri() + ": " + e.getMessage());
+						} catch (Throwable e) {
+							Global.LOGGER.warning("Error calling onRegisterSuccess for " + name.toUri() + ": " + e.getMessage());
 						}
 						onRegSuc[0].onRegisterSuccess(name, l);
 					}
@@ -246,8 +233,7 @@ public class NACNode {
 	//    1. publish self public key
 	//    2. send public key to manager
 	//    3. receive signed pub key and call onSuccess
-	public void registerIdentity(
-		final Name certName, final Data cert, final OnRegisterIdentitySuccess onSuccess) {
+	public void registerIdentity(final Name certName, final Data cert, final OnRegisterIdentitySuccess onSuccess) {
 		SCHEDULED_EXECUTOR_SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -261,8 +247,8 @@ public class NACNode {
 		});
 	}
 
-	public void requestGrantPermission(final Name consumerCert, final String dataType,
-									   final Runnable onSuccess, final Runnable onFail) {
+	public void requestGrantPermission(final Name consumerCert, final String dataType, final Runnable onSuccess,
+			final Runnable onFail) {
 		SCHEDULED_EXECUTOR_SERVICE.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -323,37 +309,34 @@ public class NACNode {
 		}
 	}
 
-	private void fetchSignedCertitificate(
-		final String certName, final OnRegisterIdentitySuccess onSuccess) {
+	private void fetchSignedCertitificate(final String certName, final OnRegisterIdentitySuccess onSuccess) {
 		try {
 			final String api = Global.LOCAL_HOME + "/IDENTITY/for" + certName;
 			final Name finalCertName = new Name(certName);
-			expressInterest(new Name(api),
-				new OnData() {
-					@Override
-					public void onData(Interest interest, Data data) {
-						try {
-							data.setName(finalCertName);
-							IdentityCertificate cert = new IdentityCertificate(data);
-							onSuccess.onNewCertificate(cert);
-						} catch (DerDecodingException e) {
-							LOGGER.log(Level.SEVERE, "fetchSignedCertitificate->callback", e);
-						}
+			expressInterest(new Name(api), new OnData() {
+				@Override
+				public void onData(Interest interest, Data data) {
+					try {
+						data.setName(finalCertName);
+						IdentityCertificate cert = new IdentityCertificate(data);
+						onSuccess.onNewCertificate(cert);
+					} catch (DerDecodingException e) {
+						LOGGER.log(Level.SEVERE, "fetchSignedCertitificate->callback", e);
 					}
-				},
-				new OnNetworkNack() {
-					@Override
-					public void onNetworkNack(Interest interest, NetworkNack networkNack) {
-						// restart
-						try {
-							TimeUnit.SECONDS.sleep(2);
-							// onFail, restart from add Identity
-							requestAddIdentity(finalCertName, onSuccess);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+				}
+			}, new OnNetworkNack() {
+				@Override
+				public void onNetworkNack(Interest interest, NetworkNack networkNack) {
+					// restart
+					try {
+						TimeUnit.SECONDS.sleep(2);
+						// onFail, restart from add Identity
+						requestAddIdentity(finalCertName, onSuccess);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-				});
+				}
+			});
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "fetchSignedCertitificate", e);
 		}
@@ -362,12 +345,10 @@ public class NACNode {
 	private void publishCert(final Name certName, final Data cert, final Runnable onSuc) {
 		final OnInterestCallback onInterest = new OnInterestCallback() {
 			@Override
-			public void onInterest(Name prefix, Interest interest, Face face, long interestFilterId,
-								   InterestFilter filter) {
+			public void onInterest(Name prefix, Interest interest, Face face, long interestFilterId, InterestFilter filter) {
 				try {
 					Data result = new Data(cert);
-					if (result.getMetaInfo() == null
-						|| result.getMetaInfo().getFreshnessPeriod() <= 0) {
+					if (result.getMetaInfo() == null || result.getMetaInfo().getFreshnessPeriod() <= 0) {
 						if (result.getMetaInfo() == null) {
 							result.setMetaInfo(new MetaInfo());
 						}
@@ -388,8 +369,8 @@ public class NACNode {
 		registerPrefix(certName, onInterest, null, onRegSuc, DEFAULT_INTEREST_TIMEOUT_RETRY);
 	}
 
-	private void doRequestPermission(
-		Name consumerCert, String dataType, final Runnable onSuccess, final Runnable onFail) {
+	private void doRequestPermission(Name consumerCert, String dataType, final Runnable onSuccess,
+			final Runnable onFail) {
 		Name api = new Name(Global.LOCAL_HOME + "/MANAGEMENT/access/grant");
 		String certName = consumerCert.toUri();
 		api.append(certName);
