@@ -10,13 +10,14 @@ import net.named_data.jndn.encrypt.algo.RsaAlgorithm;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.RsaKeyParams;
 import net.named_data.jndn.security.SecurityException;
-import net.named_data.jndn.security.certificate.IdentityCertificate;
+import net.named_data.jndn.security.certificate.Certificate;
 import net.named_data.jndn.security.certificate.PublicKey;
 import net.named_data.jndn.util.Blob;
 
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,7 +33,7 @@ public class ConsumerWrapper {
 	private static Logger logger = Global.LOGGER;
 
 	protected ConsumerWrapper(Name consumerName, Consumer consumer, Name keyName,
-		IdentityCertificate cert, KeyPair keypair) {
+							  Certificate cert, KeyPair keypair) {
 		m_name = consumerName;
 		m_consumer = consumer;
 		m_keyName = keyName;
@@ -106,7 +107,7 @@ public class ConsumerWrapper {
 
 		Name keyName = generateKeyName(name, keyPair.publicKey.getKeyBits());
 
-		IdentityCertificate cert = makeCert(keychain, keyName, keyPair.publicKey.getKeyBits());
+		Certificate cert = makeCert(keychain, keyName, keyPair.publicKey.getKeyBits());
 
 		return new ConsumerWrapper(name, consumer, keyName, cert, keyPair);
 	}
@@ -131,6 +132,11 @@ public class ConsumerWrapper {
 		KeyPair pair = new KeyPair();
 		pair.privateKey = new DecryptKey(decryptKeyBlob);
 		pair.publicKey = encryptKey;
+
+		System.out.println(String.format(Locale.ENGLISH,
+			"Generated Key Pair\r\n\tPub: %s \r\n\tPriv: %s",
+			encryptKey.getKeyBits().toHex(),
+			decryptKeyBlob.toHex()));
 		return pair;
 	}
 
@@ -144,7 +150,7 @@ public class ConsumerWrapper {
 		return keyName;
 	}
 
-	private static IdentityCertificate makeCert(KeyChain keychain, Name keyName, Blob ekey) {
+	private static Certificate makeCert(KeyChain keychain, Name keyName, Blob publicKeyBlob) {
 		byte[] bytes = new byte[8];
 		StringHelper.randomBytes(bytes);
 		String rand = StringHelper.toHex(bytes);
@@ -153,9 +159,9 @@ public class ConsumerWrapper {
 								   .append(keyName.get(-1))
 								   .append("ID-CERT")
 								   .append(rand);
-		IdentityCertificate cert = new IdentityCertificate();
+		Certificate cert = new Certificate();
 		try {
-			PublicKey pk = new PublicKey(ekey);
+			PublicKey pk = new PublicKey(publicKeyBlob);
 			cert.setPublicKeyInfo(pk);
 			cert.setNotBefore(0);
 			cert.setNotAfter(0);
@@ -185,14 +191,15 @@ public class ConsumerWrapper {
 		return m_keyCert;
 	}
 
-	public void setCertificate(IdentityCertificate cert) {
+	public void setCertificate(Certificate cert) {
 		m_keyCert = cert;
 		try {
 			logger.log(Level.INFO, "add decryption key for cert: " + cert.getName());
+			logger.log(Level.INFO, cert.getPublicKeyDer().toHex());
 			m_consumer.addDecryptionKey(cert.getName(), m_keypair.privateKey.getKeyBits());
 			logger.log(
-				Level.INFO, "add decryption key for cert public key: " + cert.getPublicKeyName());
-			m_consumer.addDecryptionKey(cert.getPublicKeyName(), m_keypair.privateKey.getKeyBits());
+				Level.INFO, "add decryption key for cert public key: " + cert.getName());
+			m_consumer.addDecryptionKey(cert.getName(), m_keypair.privateKey.getKeyBits());
 		} catch (ConsumerDb.Error error) {
 			logger.log(Level.SEVERE, "cannot add decrypt key for cert:" + error.getMessage());
 		}
@@ -205,6 +212,10 @@ public class ConsumerWrapper {
 
 		public KeyPair getKeyPair(ConsumerWrapper c){
 			return c.m_keypair;
+		}
+
+		public Certificate makeCert(KeyChain keychain, Name keyName, Blob publicKeyBlob) {
+			return ConsumerWrapper.makeCert(keychain, keyName, publicKeyBlob);
 		}
 	}
 

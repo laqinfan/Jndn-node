@@ -5,7 +5,7 @@ import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encoding.der.DerDecodingException;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.SecurityException;
-import net.named_data.jndn.security.certificate.IdentityCertificate;
+import net.named_data.jndn.security.certificate.Certificate;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -226,7 +226,7 @@ public class NACNode {
 	////////////////////////////////////////////////////////
 
 	public interface OnRegisterIdentitySuccess {
-		void onNewCertificate(IdentityCertificate cert);
+		void onNewCertificate(Certificate cert);
 	}
 
 	// should
@@ -318,7 +318,7 @@ public class NACNode {
 				public void onData(Interest interest, Data data) {
 					try {
 						data.setName(finalCertName);
-						IdentityCertificate cert = new IdentityCertificate(data);
+						Certificate cert = new Certificate(data);
 						onSuccess.onNewCertificate(cert);
 					} catch (DerDecodingException e) {
 						LOGGER.log(Level.SEVERE, "fetchSignedCertitificate->callback", e);
@@ -367,6 +367,9 @@ public class NACNode {
 			}
 		};
 		registerPrefix(certName, onInterest, null, onRegSuc, DEFAULT_INTEREST_TIMEOUT_RETRY);
+
+		LOGGER.log(Level.INFO,
+			String.format("Publishing cert [%s]\r\n\t%s", certName.toUri(), cert.getContent().toHex()));
 	}
 
 	private void doRequestPermission(Name consumerCert, String dataType, final Runnable onSuccess,

@@ -9,6 +9,9 @@ import net.named_data.jndn.encrypt.algo.EncryptParams;
 import net.named_data.jndn.encrypt.algo.RsaAlgorithm;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.SecurityException;
+import net.named_data.jndn.security.UnrecognizedKeyFormatException;
+import net.named_data.jndn.security.certificate.Certificate;
+import net.named_data.jndn.security.certificate.PublicKey;
 import net.named_data.jndn.util.Blob;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -129,7 +132,7 @@ public class TestConsumerWrapper {
 		private void processEKey(Interest interest, OnData onData) {
 			try {
 				if (eKeys == null || eKeys.size() == 0) {
-					List keys = fixture.groupManager.getGroupKey(fixture.startTimeSlot,false);
+					List keys = fixture.groupManager.getGroupKey(fixture.startTimeSlot, false);
 					eKeys = new LinkedList<>();
 					for (Object k : keys) {
 						eKeys.add((Data) k);
@@ -326,6 +329,21 @@ public class TestConsumerWrapper {
 			);
 			Blob decrypted = RsaAlgorithm.decrypt(pair.privateKey.getKeyBits(), encryptedBlob, encryptParams);
 			Assert.assertEquals(plaintext, decrypted);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCertificate() {
+		try {
+			ConsumerWrapper.KeyPair pair = consumerWrapperAccess.generateKeyPair();
+			Name keyName = new Name("/id/test-key");
+			Certificate cert = consumerWrapperAccess.makeCert(fixture.keychain, keyName, pair.publicKey.getKeyBits());
+			Assert.assertArrayEquals(
+				cert.getPublicKeyDer().getImmutableArray(),
+				pair.publicKey.getKeyBits().getImmutableArray());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.getMessage());
