@@ -66,8 +66,8 @@ public class ConsumerWrapper {
 				wrapper = prototype(name, accessPrefix, keychain, face, dbRelativePath, keyPair);
 				try {
 					logger.log(Level.INFO, "Add decryption key: " + wrapper.m_keyName.toUri());
-					wrapper.m_consumer.addDecryptionKey(
-						wrapper.m_keyName, keyPair.privateKey.getKeyBits());
+					wrapper.m_consumer.addDecryptionKey(wrapper.m_keyName,
+						keyPair.privateKey.getKeyBits());
 				} catch (ConsumerDb.Error error1) {
 					logger.log(Level.SEVERE, "Fatal addDecryptionKey " + error1.getMessage());
 				}
@@ -92,12 +92,13 @@ public class ConsumerWrapper {
 
 	// create intance of consumer, build and return a prototype wrapper
 	private static ConsumerWrapper prototype(Name name, Name accessPrefix, KeyChain keychain,
-		Face face, String dbRelativePath, KeyPair keyPair) {
+											 Face face, String dbRelativePath, KeyPair keyPair) {
 		//    final String dbPath = constructDBPath(dbRelativePath);
 		final String dbPath = dbRelativePath;
 		//    final ConsumerDb db = new AndroidSqlite3ConsumerDb(dbPath);
 		ConsumerDb db = null;
 		try {
+			// TODO: need to change it to android version (@class AndroidSqlite3ConsumerDb)
 			db = new Sqlite3ConsumerDb(dbPath);
 		} catch (ConsumerDb.Error error) {
 			throw new RuntimeException(error);
@@ -146,6 +147,7 @@ public class ConsumerWrapper {
 		String publicKeyHex = encryptKeyBlob.toHex();
 		String keyId =
 			publicKeyHex.substring(0, 3) + publicKeyHex.substring(publicKeyHex.length() - 3);
+		keyName.append("KEY");
 		keyName.append("DSK-" + keyId);
 		return keyName;
 	}
@@ -155,10 +157,9 @@ public class ConsumerWrapper {
 		StringHelper.randomBytes(bytes);
 		String rand = StringHelper.toHex(bytes);
 		Name certificateName = keyName.getSubName(0, keyName.size() - 1)
-								   .append("KEY")
-								   .append(keyName.get(-1))
-								   .append("ID-CERT")
-								   .append(rand);
+			.append(keyName.get(-1))
+			.append("ID-CERT")
+			.append(rand);
 		Certificate cert = new Certificate();
 		try {
 			PublicKey pk = new PublicKey(publicKeyBlob);
@@ -172,6 +173,9 @@ public class ConsumerWrapper {
 			e.printStackTrace();
 		}
 		cert.setName(certificateName);
+		logger.log(Level.INFO, String.format(Locale.ENGLISH,
+			"created cert [%s]\r\n\tCERT: %s\r\n\tPUB-KEY: %s", certificateName.toUri(),
+			cert.getContent().toHex(), cert.getPublicKeyDer().toHex()));
 		return cert;
 	}
 
@@ -205,12 +209,12 @@ public class ConsumerWrapper {
 		}
 	}
 
-	public static class FriendAccess{
-		public KeyPair generateKeyPair(){
+	public static class FriendAccess {
+		public KeyPair generateKeyPair() {
 			return ConsumerWrapper.generateKeyPair();
 		}
 
-		public KeyPair getKeyPair(ConsumerWrapper c){
+		public KeyPair getKeyPair(ConsumerWrapper c) {
 			return c.m_keypair;
 		}
 

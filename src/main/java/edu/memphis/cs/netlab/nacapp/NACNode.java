@@ -354,6 +354,10 @@ public class NACNode {
 						}
 						result.getMetaInfo().setFreshnessPeriod(DEFAULT_FRESH_PERIOD_MS);
 					}
+					LOGGER.log(Level.INFO, String.format(
+						"\tCERT->DATA: %s",
+						result.getContent().toHex()
+					));
 					face.putData(result);
 				} catch (IOException e) {
 					LOGGER.log(Level.SEVERE, "error satisfying cert interest", e);
@@ -369,7 +373,7 @@ public class NACNode {
 		registerPrefix(certName, onInterest, null, onRegSuc, DEFAULT_INTEREST_TIMEOUT_RETRY);
 
 		LOGGER.log(Level.INFO,
-			String.format("Publishing cert [%s]\r\n\t%s", certName.toUri(), cert.getContent().toHex()));
+			String.format("Publishing cert [%s] content: \r\n\t%s", certName.toUri(), cert.getContent().toHex()));
 	}
 
 	private void doRequestPermission(Name consumerCert, String dataType, final Runnable onSuccess,
