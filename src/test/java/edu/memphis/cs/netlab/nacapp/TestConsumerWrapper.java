@@ -9,9 +9,7 @@ import net.named_data.jndn.encrypt.algo.EncryptParams;
 import net.named_data.jndn.encrypt.algo.RsaAlgorithm;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.SecurityException;
-import net.named_data.jndn.security.UnrecognizedKeyFormatException;
 import net.named_data.jndn.security.certificate.Certificate;
-import net.named_data.jndn.security.certificate.PublicKey;
 import net.named_data.jndn.util.Blob;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -350,11 +348,34 @@ public class TestConsumerWrapper {
 		}
 	}
 
+	private static class TestDBSource implements ConsumerDBSource{
+
+		@Override
+		public ConsumerDb getDB() {
+			try {
+				return new Sqlite3ConsumerDb(":memory:");
+			} catch (ConsumerDb.Error error) {
+				throw new RuntimeException(error);
+			}
+		}
+
+		@Override
+		public boolean deleteDB() {
+			// do nothing
+			return false;
+		}
+
+		@Override
+		public boolean isMemoryDB() {
+			return true;
+		}
+	}
+
 	@Test
 	public void testLocalIntegrate() {
 		try {
 			ConsumerWrapper consumerWrapper = ConsumerWrapper.make(
-				fixture.consumerName, fixture.prefix, fixture.keychain, fixture.face, ":memory:");
+				fixture.consumerName, fixture.prefix, fixture.keychain, fixture.face, new TestDBSource());
 
 			fixture.groupManager.addMember(fixture.scheduleName, consumerWrapper.getCertificate());
 

@@ -14,7 +14,6 @@ import net.named_data.jndn.security.certificate.Certificate;
 import net.named_data.jndn.security.certificate.PublicKey;
 import net.named_data.jndn.util.Blob;
 
-import java.io.File;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Locale;
@@ -22,7 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Make sure a consumer is 'usable'.
+ * Make sure a consumer class is 'usable' out of box.
  * Author: lei
  */
 
@@ -41,13 +40,14 @@ public class ConsumerWrapper {
 		m_keypair = keypair;
 	}
 
+
 	// create a well configured consumer wrapper
 	public static ConsumerWrapper make(
-		Name name, Name accessPrefix, KeyChain keychain, Face face, String dbRelativePath) {
+		Name name, Name accessPrefix, KeyChain keychain, Face face, ConsumerDBSource dbSource) {
 		KeyPair keyPair = generateKeyPair();
 
 		ConsumerWrapper wrapper =
-			prototype(name, accessPrefix, keychain, face, dbRelativePath, keyPair);
+			prototype(name, accessPrefix, keychain, face, dbSource, keyPair);
 
 		// configure consumer
 		try {
@@ -56,14 +56,12 @@ public class ConsumerWrapper {
 			// where is public key saved? the developer need to keep it ???
 			wrapper.m_consumer.addDecryptionKey(wrapper.m_keyName, keyPair.privateKey.getKeyBits());
 		} catch (ConsumerDb.Error error) {
-			if (!dbRelativePath.endsWith(":memory:")) {
+			// !dbRelativePath.endsWith(":memory:")
+			if (!dbSource.isMemoryDB()) {
 				logger.log(Level.SEVERE, "Error addDecryptionKey " + error.getMessage());
 				logger.log(Level.SEVERE, "Will delete consumer database and try again");
-				final String dbPath = dbRelativePath;
-				File f = new File(dbPath);
-				boolean deleted = f.delete();
-				logger.log(Level.SEVERE, "Consumer db deleted? " + String.valueOf(deleted));
-				wrapper = prototype(name, accessPrefix, keychain, face, dbRelativePath, keyPair);
+				dbSource.deleteDB();
+				wrapper = prototype(name, accessPrefix, keychain, face, dbSource, keyPair);
 				try {
 					logger.log(Level.INFO, "Add decryption key: " + wrapper.m_keyName.toUri());
 					wrapper.m_consumer.addDecryptionKey(wrapper.m_keyName,
@@ -92,18 +90,9 @@ public class ConsumerWrapper {
 
 	// create intance of consumer, build and return a prototype wrapper
 	private static ConsumerWrapper prototype(Name name, Name accessPrefix, KeyChain keychain,
-											 Face face, String dbRelativePath, KeyPair keyPair) {
-		//    final String dbPath = constructDBPath(dbRelativePath);
-		final String dbPath = dbRelativePath;
-		//    final ConsumerDb db = new AndroidSqlite3ConsumerDb(dbPath);
-		ConsumerDb db = null;
-		try {
-			// TODO: need to change it to android version (@class AndroidSqlite3ConsumerDb)
-			db = new Sqlite3ConsumerDb(dbPath);
-		} catch (ConsumerDb.Error error) {
-			throw new RuntimeException(error);
-		}
-
+											 Face face, ConsumerDBSource dbSource, KeyPair keyPair) {
+		ConsumerDb db;
+		db = dbSource.getDB();
 		Consumer consumer = new Consumer(face, keychain, accessPrefix, name, db);
 
 		Name keyName = generateKeyName(name, keyPair.publicKey.getKeyBits());
