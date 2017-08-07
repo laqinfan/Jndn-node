@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: libs/jndn-0.15.jar libs/guava-20.0.jar libs/gson-2.8.1.jar
-  libs/sqlite-jdbc-3.19.3.jar
-Main-Class: edu.memphis.cs.netlab.nacapp.Application
-

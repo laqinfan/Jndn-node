@@ -6,8 +6,8 @@
  * user guide available at https://docs.gradle.org/3.4.1/userguide/java_library_plugin.html
  */
 
-apply plugin: 'java'
-
+apply plugin: 'com.android.library'
+ 
 
 repositories {
     jcenter()
