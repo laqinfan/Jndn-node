@@ -116,9 +116,10 @@ public class ConsumerWrapper {
       decryptKeyBlob = RsaAlgorithm.generateKey(params).getKeyBits();
       // public key
       encryptKey = RsaAlgorithm.deriveEncryptKey(decryptKeyBlob);
-    } catch (NoSuchAlgorithmException | DerDecodingException | InvalidKeySpecException e) {
+    } catch (SecurityException e) {
       throw new RuntimeException(e);
     }
+
     KeyPair pair = new KeyPair();
     pair.privateKey = new DecryptKey(decryptKeyBlob);
     pair.publicKey = encryptKey;

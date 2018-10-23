@@ -93,7 +93,7 @@ public class NACNode {
   }
 
   // issue interest using default timeout
-  public void expressInterest(Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNac) throws IOException {
+  public void expressInterest(Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNac) {
     Interest interest = new Interest(name, DEFAULT_INTEREST_TIMEOUT_MS);
     try {
       m_face.expressInterest(interest, onData, onTimeout, onNac);
@@ -103,7 +103,7 @@ public class NACNode {
   }
 
   public void putData(Data d) {
-    putData(d, new LinkedList());
+    putData(d, new LinkedList<DataProcessor>());
   }
 
   /**
@@ -151,6 +151,17 @@ public class NACNode {
       }
     };
     registerPrefix(new Name(prefix), onInterest, onRegisterFailed, onSuccess, DEFAULT_INTEREST_TIMEOUT_RETRY);
+  }
+
+  public void registerPrefix(final Name prefix, final OnInterestCallback onInterest,
+                             final OnRegisterSuccess onSuccess) {
+    OnRegisterFailed onRegisterFailed = new OnRegisterFailed() {
+      @Override
+      public void onRegisterFailed(Name name) {
+        System.err.println("Register failed: " + name.toUri());
+      }
+    };
+    registerPrefix(prefix, onInterest, onRegisterFailed, onSuccess, DEFAULT_INTEREST_TIMEOUT_RETRY);
   }
 
   public void registerPrefix(final Name prefix, final OnInterestCallback onInterest, final OnRegisterFailed onFail,
