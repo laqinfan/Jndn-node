@@ -33,7 +33,11 @@ public class NACNode {
   // constructors
   ////////////////////////////////////////////////////////
   public NACNode(Name appPrefix) {
-    init(appPrefix);
+    init(appPrefix, null, null, null);
+  }
+
+  public NACNode(Name appPrefix, Name identityName, Face face, KeyChain keyChain){
+    init(appPrefix, identityName, face, keyChain);
   }
 
   ////////////////////////////////////////////////////////
@@ -286,16 +290,30 @@ public class NACNode {
    *
    * @param appPrefix Application prefix
    */
-  protected void init(Name appPrefix) {
+  protected void init(Name appPrefix, Name identity, Face face, KeyChain keyChain) {
     m_prefix = new Name(appPrefix);
-    Name identity = new Name(appPrefix);
-    identity.append(Global.TMP_IDENTITY);
-    m_face = new Face("localhost");
-    try {
-      m_keychain = KeyChainHelper.makeKeyChain(identity, m_face);
-    } catch (SecurityException e) {
-      throw new RuntimeException(e);
+
+    if (null == identity){
+      identity = new Name(appPrefix);
+      identity.append(Global.TMP_IDENTITY);
     }
+
+    if (null == face){
+      m_face = new Face("localhost");
+    } else {
+      m_face = face;
+    }
+
+    if (null == keyChain){
+      try {
+        m_keychain = KeyChainHelper.makeKeyChain(identity, m_face);
+      } catch (SecurityException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      m_keychain = keyChain;
+    }
+
     try {
       m_face.setCommandSigningInfo(m_keychain, m_keychain.getDefaultCertificateName());
     } catch (SecurityException ignored) {
