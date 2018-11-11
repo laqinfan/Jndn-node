@@ -3,8 +3,6 @@ package edu.memphis.cs.netlab.nacapp;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Name;
 import net.named_data.jndn.encrypt.Consumer;
-import net.named_data.jndn.encrypt.ConsumerDb;
-import net.named_data.jndn.encrypt.Sqlite3ConsumerDb;
 import net.named_data.jndn.security.KeyChain;
 
 /**

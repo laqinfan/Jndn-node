@@ -2,9 +2,6 @@ package edu.memphis.cs.netlab.nacapp;
 
 import net.named_data.jndn.encrypt.AndroidSqlite3ConsumerDb;
 import net.named_data.jndn.encrypt.ConsumerDb;
-import net.named_data.jndn.encrypt.Sqlite3ConsumerDb;
-
-import java.io.File;
 
 /**
  * Description:

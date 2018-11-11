@@ -83,7 +83,7 @@ public class TestConsumerWrapper {
       };
 
       try {
-        Name ckeyName = fixture.producer.createContentKey(
+        fixture.producer.createContentKey(
             fixture.startTimeSlot, onEncryptedKeys, Producer.defaultOnError);
         //				fixture.producerDb.getContentKey(fixture.startTimeSlot);
 

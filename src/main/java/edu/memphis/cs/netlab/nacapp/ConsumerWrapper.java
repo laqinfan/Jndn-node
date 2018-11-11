@@ -1,11 +1,18 @@
 package edu.memphis.cs.netlab.nacapp;
 
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Name;
 import net.named_data.jndn.encoding.der.DerDecodingException;
 import net.named_data.jndn.encoding.der.DerEncodingException;
-import net.named_data.jndn.encrypt.*;
+import net.named_data.jndn.encrypt.Consumer;
+import net.named_data.jndn.encrypt.ConsumerDb;
+import net.named_data.jndn.encrypt.DecryptKey;
+import net.named_data.jndn.encrypt.EncryptKey;
 import net.named_data.jndn.encrypt.algo.RsaAlgorithm;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.RsaKeyParams;
@@ -14,25 +21,17 @@ import net.named_data.jndn.security.certificate.Certificate;
 import net.named_data.jndn.security.certificate.PublicKey;
 import net.named_data.jndn.util.Blob;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
- * Make sure a consumer class is 'usable' out of box.
- * Author: lei
+ * Make sure a consumer class is 'usable' out of box. Author: lei
  */
 
 public class ConsumerWrapper {
-  //  private static final Logger logger =
-  //  Logger.getLogger(ConsumerWrapper.class.getName());
+  // private static final Logger logger =
+  // Logger.getLogger(ConsumerWrapper.class.getName());
 
   private static Logger logger = Global.LOGGER;
 
-  protected ConsumerWrapper(Name consumerName, Consumer consumer, Name keyName,
-                            Certificate cert, KeyPair keypair) {
+  protected ConsumerWrapper(Name consumerName, Consumer consumer, Name keyName, Certificate cert, KeyPair keypair) {
     m_name = consumerName;
     m_consumer = consumer;
     m_keyName = keyName;
