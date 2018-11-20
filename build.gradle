@@ -14,8 +14,8 @@ repositories {
 }
 
 compileJava {
-    sourceCompatibility = '1.7'
-    targetCompatibility = '1.7'
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
 }
 
 dependencies {
@@ -24,7 +24,7 @@ dependencies {
 
 //    compile files("../jndn/target/jndn-android-0.15.jar")
 
-    compile 'net.named-data:jndn-android:0.18'
+    implementation 'net.named-data:jndn-android:0.18'
     testCompile 'junit:junit:4.12'
 
 }
