@@ -39,7 +39,8 @@ public abstract class Global {
 	// ----------------------------------------------------------------------
 	// Networking
 
-	public static final long DEFAULT_INTEREST_TIMEOUT_MS = 5000;
+//	public static final long DEFAULT_INTEREST_TIMEOUT_MS = 5000;
+	public static final long DEFAULT_INTEREST_TIMEOUT_MS = 10000;
 	public static final int DEFAULT_INTEREST_TIMEOUT_RETRY = 10;
 	public static final int DEFAULT_FRESH_PERIOD_MS = 1000;
 

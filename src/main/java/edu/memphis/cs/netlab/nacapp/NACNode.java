@@ -1,11 +1,15 @@
 package edu.memphis.cs.netlab.nacapp;
 
+import android.util.Log;
+
 import net.named_data.jndn.*;
 import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encoding.der.DerDecodingException;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.SecurityException;
 import net.named_data.jndn.security.certificate.Certificate;
+import net.named_data.jndn.security.pib.PibIdentity;
+import net.named_data.jndn.security.pib.PibImpl;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -26,7 +30,6 @@ import static edu.memphis.cs.netlab.nacapp.Global.*;
 public class NACNode {
   @SuppressWarnings("unused")
   private final static String TAG = NACNode.class.getName();
-  //  private static final Logger LOGGER = Logger.getLogger(TAG);
   private static final Logger LOGGER = Global.LOGGER;
 
   ////////////////////////////////////////////////////////
@@ -79,6 +82,7 @@ public class NACNode {
             e.printStackTrace();
           }
         }
+          Log.d("Device Interest:", "onTimeout:" );
       }
     };
 
@@ -89,11 +93,17 @@ public class NACNode {
           onTimeouts[0].onTimeout(interest);
         }
       };
+
+        Log.d("Device Interest:", "onNack:" );
     } else {
       onNacks[0] = onNack;
+
+        Log.d("Device Interest:", "onNack:" + onNacks[0] );
     }
 
     LOGGER.info("[Interest] " + interest.toUri());
+
+      Log.d("Device Interest:", "Interest:" + interest.toUri() );
     m_face.expressInterest(interest, onData, onTimeouts[0], onNacks[0]);
   }
 
@@ -121,15 +131,20 @@ public class NACNode {
   public void putData(Data d, List<DataProcessor> dataProcessors) {
     try {
       d = DataProcessors.applyProcessors(d, dataProcessors);
-      if (null == d.getMetaInfo()) {
-        d.setMetaInfo(new MetaInfo());
-      }
-      //			if (d.getMetaInfo().getFreshnessPeriod() <= 0) {
-      d.getMetaInfo().setFreshnessPeriod(DEFAULT_FRESH_PERIOD_MS);
-      //			}
+//      if (null == d.getMetaInfo()) {
+//        d.setMetaInfo(new MetaInfo());
+//      }
+//      if (d.getMetaInfo().getFreshnessPeriod() <= 0) {
+//      d.getMetaInfo().setFreshnessPeriod(DEFAULT_FRESH_PERIOD_MS);
+//      }
+
       if (null == d.getSignature()) {
         m_keychain.sign(d);
+          Log.d("anchorsign:","signature name" + d.getSignature() );
       }
+
+      Log.d("put:", "putData: " + d.getName());
+
       m_face.putData(d);
       final String tag = d.getMetaInfo().getType() == ContentType.NACK ? "NACK" : "OUT:DATA";
       LOGGER.info(String.format(Locale.ENGLISH, "[%s] (%d) %s", tag, d.getContent().size(), d.getName().toUri()));
@@ -144,6 +159,8 @@ public class NACNode {
     nack.setMetaInfo(new MetaInfo());
     nack.getMetaInfo().setFreshnessPeriod(1000);
     nack.getMetaInfo().setType(ContentType.NACK);
+    Log.d("put:", "nack: " + n);
+
     putData(nack);
   }
 
@@ -193,6 +210,7 @@ public class NACNode {
       }
     };
     LOGGER.info("[REG] " + prefix.toUri());
+    System.out.println("[REG] " + prefix.toUri());
     try {
       m_face.registerPrefix(prefix, onInterest, onRetry[0], onSuccess);
     } catch (IOException | SecurityException e) {
@@ -313,6 +331,10 @@ public class NACNode {
         m_keychain = KeyChainHelper.makeKeyChain(identity, m_face);
       } catch (SecurityException e) {
         throw new RuntimeException(e);
+      } catch (PibImpl.Error error) {
+        error.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
       }
     } else {
       m_keychain = keyChain;
@@ -399,6 +421,8 @@ public class NACNode {
               "\tCERT->DATA: %s",
               result.getContent().toHex()
           ));
+
+          Log.d("Publish:", "onTimeout:" + result.getName());
           face.putData(result);
         } catch (IOException e) {
           LOGGER.log(Level.SEVERE, "error satisfying cert interest", e);
