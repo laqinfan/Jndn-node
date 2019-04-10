@@ -82,6 +82,7 @@ public class NACNode {
             e.printStackTrace();
           }
         }
+          Log.d("Device Interest:", "onTimeout:" );
       }
     };
 
@@ -95,6 +96,7 @@ public class NACNode {
 
     } else {
       onNacks[0] = onNack;
+
     }
 
     LOGGER.info("[Interest] " + interest.toUri());
@@ -129,8 +131,9 @@ public class NACNode {
 
       if (null == d.getSignature()) {
         m_keychain.sign(d);
+          Log.d("anchorsign:","signature name" + d.getSignature() );
       }
-
+      
       m_face.putData(d);
       final String tag = d.getMetaInfo().getType() == ContentType.NACK ? "NACK" : "OUT:DATA";
       LOGGER.info(String.format(Locale.ENGLISH, "[%s] (%d) %s", tag, d.getContent().size(), d.getName().toUri()));
