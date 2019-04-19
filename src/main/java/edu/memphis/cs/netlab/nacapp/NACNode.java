@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018-2019 Lei Pi
+ */
+
 package edu.memphis.cs.netlab.nacapp;
 
 import android.util.Log;
@@ -24,7 +28,7 @@ import static edu.memphis.cs.netlab.nacapp.Global.*;
 /**
  * Description:
  * <p>
- * Author: lei
+ * Author: Lei Pi
  */
 
 public class NACNode {

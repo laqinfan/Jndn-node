@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018-2019 Lei Pi, Laqin Fan
+ */
+
 package edu.memphis.cs.netlab.nacapp;
 
 import android.content.Context;
